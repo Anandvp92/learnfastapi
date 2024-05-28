@@ -12,6 +12,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class User(Base):
+
     __tablename__ = "User"    
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(250), unique=True, nullable=False)
@@ -20,11 +21,19 @@ class User(Base):
     is_admin= Column(Boolean,default=False)
     is_staff = Column(Boolean, default=True)
     
-    @staticmethod
-    def get_password_hash(password):
-        password= pwd_context.hash(password)
+    def __init__(self,username:str,password:str,email_id:str):
+        self.username=username
+        self.password=password
+        self.email_id=email_id        
+        self.get_password_hash()
+
+
+    def get_password_hash(self):
+        self.password= pwd_context.hash(self.password)
         
-        
+    def get_password_verify(self,unhashedpassword :str) ->bool:
+        return pwd_context.verify(unhashedpassword,self.password)
+    
         
 Base.metadata.create_all(engine)
 
@@ -34,5 +43,17 @@ class UserAuth(BaseModel):
     username:str
     email_id:str
     password:str
+
+
+class Loginuser(BaseModel):
+    username:str
+    password:str
+
+
+class UserBody(BaseModel):
+    username:str
+
+
+
     
     
