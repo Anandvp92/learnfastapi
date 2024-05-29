@@ -4,10 +4,12 @@ from database import Base,engine
 from sqlalchemy import Column,Integer,String,Boolean,DateTime
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
+from database import SessionLocal
 
 privatekey="ff247f0ca36ce14dc184314e2e0d6ea6196b22e5fc7491ed2fcd6b668079f2ab"
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 
 
 
@@ -25,8 +27,8 @@ class User(Base):
         self.username=username
         self.password=password
         self.email_id=email_id        
+        self.normalize_emailid()
         self.get_password_hash()
-
 
     def get_password_hash(self):
         self.password= pwd_context.hash(self.password)
@@ -34,7 +36,39 @@ class User(Base):
     def get_password_verify(self,unhashedpassword :str) ->bool:
         return pwd_context.verify(unhashedpassword,self.password)
     
+    def displayuser(self)->dict:
+        return {"id":self.id,"username":self.username,"email id":self.email_id,"is staff":self.is_staff,"is admin":self.is_admin}
         
+    def insertdata(self):
+        with SessionLocal() as db:
+            if not db.query(User).filter(User.email_id==self.normalize_emailid()).scalar():
+                self.email_id= self.email_id.strip().lower()
+                db.add(self)
+                db.commit()
+                db.refresh(self)
+                return {"msg": f"{self.username} is added"}
+            else:
+                return {"message": "user already exist"}
+            
+    def normalize_emailid(self):
+        self.email_id=self.email_id.strip().lower()
+        return self.email_id
+    
+    
+    @staticmethod
+    def deleteuser(id:int):
+        try:
+            with SessionLocal() as db:
+                deleteuser=db.query(User).filter(User.id==id).first()
+                if deleteuser:
+                    db.delete(deleteuser)
+                    db.commit()
+                    return {"message":"user as been deleted"}
+                else:
+                    return {"message": f"user in id number {id} not found"}
+        except:
+            return {"msg":"something went wrong"}
+    
 Base.metadata.create_all(engine)
 
 
