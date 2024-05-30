@@ -8,7 +8,7 @@ app = FastAPI()
 
 
 @app.post("/createuser/")
-def CreateUser(user:UserAuth ):
+def CreateUser(user:UserAuth):
     newuser=User(username=user.username,password=user.password,email_id=user.email_id)    
     return newuser.insertdata()
     

@@ -5,6 +5,7 @@ from sqlalchemy import Column,Integer,String,Boolean,DateTime
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from database import SessionLocal
+from fastapi import HTTPException,status
 
 privatekey="ff247f0ca36ce14dc184314e2e0d6ea6196b22e5fc7491ed2fcd6b668079f2ab"
 
@@ -46,13 +47,21 @@ class User(Base):
                 db.add(self)
                 db.commit()
                 db.refresh(self)
-                return {"msg": f"{self.username} is added"}
+                return HTTPException(status_code=200 ,detail=f"{self.username} is added")
             else:
-                return {"message": "user already exist"}
+                return HTTPException(status_code=204,detail="User already exist")
             
     def normalize_emailid(self):
         self.email_id=self.email_id.strip().lower()
         return self.email_id
+    
+    @staticmethod
+    def get_session():
+        session =  SessionLocal()        
+        try:
+            yield session
+        finally:
+            session.close()
     
     
     @staticmethod
